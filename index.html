@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SeatFlow — Teacher Admin Toolkit</title>
+  <meta name="description"
+    content="Simple, fast classroom tools for teachers. Seating plans, random picker, timer, and behaviour tracking.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <div class="app" id="app">
+    <!-- Toolbar -->
+    <header class="toolbar">
+      <div class="logo">SeatFlow</div>
+
+      <!-- Tool Navigation -->
+      <nav class="tool-nav" id="toolNav">
+        <button data-tool="seating" class="active">🪑 Seating</button>
+        <button data-tool="picker" class="active">🎲 Picker</button>
+        <button data-tool="timer">⏱️ Timer</button>
+        <button data-tool="behaviour">📝 Behaviour</button>
+      </nav>
+
+      <div class="toolbar-right">
+        <!-- Seating Controls -->
+        <div class="tool-controls active" data-for="seating">
+          <div class="layout-group" id="layoutGroup"></div>
+          <div class="tb-divider"></div>
+          <div class="view-toggle" id="viewToggle">
+            <button data-view="teacher" class="active">👩‍🏫 Teacher</button>
+            <button data-view="student">🧑‍🎓 Student</button>
+          </div>
+          <div class="tb-divider"></div>
+          <button class="tb-btn" id="shuffleBtn"><span class="icon">🎲</span> Shuffle</button>
+          <button class="tb-btn" id="autoAssignBtn"><span class="icon">⚡</span> Auto-fill</button>
+          <button class="tb-btn" id="clearBtn"><span class="icon">🧹</span> Clear</button>
+          <div class="tb-divider"></div>
+          <button class="tb-btn" id="saveBtn"><span class="icon">💾</span> Save</button>
+          <button class="tb-btn" id="loadBtn"><span class="icon">📂</span> Load</button>
+          <button class="tb-btn" id="printBtn"><span class="icon">🖨️</span> Print</button>
+        </div>
+
+        <!-- Picker Controls -->
+        <div class="tool-controls" data-for="picker">
+          <button class="tb-btn" id="clearHistoryBtn"><span class="icon">🧹</span> Clear History</button>
+        </div>
+
+        <!-- Timer Controls -->
+        <div class="tool-controls" data-for="timer">
+          <span style="font-size:0.8rem;color:var(--text2);">Click a preset or enter custom time below</span>
+        </div>
+
+        <!-- Behaviour Controls -->
+        <div class="tool-controls" data-for="behaviour">
+          <button class="tb-btn" id="resetBehaviourBtn"><span class="icon">🔄</span> Reset All</button>
+          <button class="tb-btn" id="exportBehaviourBtn"><span class="icon">📊</span> Export CSV</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h3>Class</h3>
+        <select class="class-select" id="classSelect"></select>
+        <div style="display:flex;gap:6px;margin-top:8px;">
+          <button class="tb-btn" style="flex:1;justify-content:center;" id="addClassBtn"><span class="icon">➕</span>
+            New</button>
+          <button class="tb-btn" style="flex:1;justify-content:center;" id="renameClassBtn"><span class="icon">✏️</span>
+            Rename</button>
+        </div>
+      </div>
+      <div class="add-students">
+        <textarea id="studentInput" placeholder="Paste student names&#10;(one per line)"></textarea>
+        <button class="add-btn" id="addStudentsBtn">➕ Add Students</button>
+      </div>
+      <div class="roster" id="roster"></div>
+      <div class="roster-footer" id="rosterFooter"></div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Seating Plan -->
+      <div class="tool-page active" id="seatingPage">
+        <div class="room">
+          <div class="room-inner" id="roomInner">
+            <div class="board-indicator"><span>▲ Front / Board ▲</span></div>
+            <div class="seats-container" id="seatsContainer"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Random Picker -->
+      <div class="tool-page" id="pickerPage">
+        <div class="picker-page">
+          <div class="picker-card" id="pickerCard">
+            <span class="cycling-name" id="pickerName">🎲 Pick a name</span>
+          </div>
+          <div class="picker-controls">
+            <button class="pick-btn" id="pickRandomBtn">🎲 Pick Random Student</button>
+          </div>
+          <div class="picker-options">
+            <label><input type="checkbox" id="excludePicked"> Exclude already picked</label>
+          </div>
+          <div class="picker-history" id="pickerHistory"></div>
+
+          <div class="group-section">
+            <div class="group-controls">
+              <label>Group size:</label>
+              <input type="number" class="group-size-input" id="groupSizeInput" value="4" min="2" max="10">
+              <button class="tb-btn" id="generateGroupsBtn"><span class="icon">👥</span> Generate Groups</button>
+            </div>
+            <div class="groups-grid" id="groupsGrid"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timer -->
+      <div class="tool-page" id="timerPage">
+        <div class="timer-page" id="timerContainer">
+          <div class="timer-ring-wrap">
+            <svg viewBox="0 0 300 300">
+              <circle class="timer-ring-bg" cx="150" cy="150" r="130" />
+              <circle class="timer-ring-progress" id="timerProgress" cx="150" cy="150" r="130" stroke-dasharray="816.8"
+                stroke-dashoffset="0" />
+            </svg>
+            <div class="timer-display">
+              <div class="timer-time" id="timerTime">5:00</div>
+              <div class="timer-label" id="timerLabel">Ready</div>
+            </div>
+          </div>
+
+          <div class="timer-actions">
+            <button class="timer-action-btn" id="timerResetBtn" title="Reset">↺</button>
+            <button class="timer-action-btn primary" id="timerPlayBtn" title="Start">▶</button>
+            <button class="timer-action-btn" id="timerAddBtn" title="+1 min">+1</button>
+          </div>
+
+          <div class="timer-presets" id="timerPresets">
+            <button class="preset-btn" data-seconds="60">1 min</button>
+            <button class="preset-btn" data-seconds="120">2 min</button>
+            <button class="preset-btn active" data-seconds="300">5 min</button>
+            <button class="preset-btn" data-seconds="600">10 min</button>
+            <button class="preset-btn" data-seconds="900">15 min</button>
+            <button class="preset-btn" data-seconds="1200">20 min</button>
+          </div>
+
+          <div class="timer-custom">
+            <input type="number" id="customMinutes" placeholder="Min" min="0" max="120">
+            <span>:</span>
+            <input type="number" id="customSeconds" placeholder="Sec" min="0" max="59">
+            <button class="tb-btn" id="setCustomTimeBtn">Set</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Behaviour Logger -->
+      <div class="tool-page" id="behaviourPage">
+        <div class="behaviour-page">
+          <div class="behaviour-header">
+            <h2>📝 Behaviour Log</h2>
+            <div class="behaviour-stats" id="behaviourStats"></div>
+          </div>
+          <div class="behaviour-grid" id="behaviourGrid"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Save Modal -->
+  <div class="modal-overlay" id="saveModal">
+    <div class="modal">
+      <h2>💾 Save Arrangement</h2>
+      <input type="text" id="saveNameInput" placeholder="e.g. Normal seating, Group work, Exam...">
+      <div class="modal-btns">
+        <button class="cancel" onclick="closeSaveModal()">Cancel</button>
+        <button class="confirm" onclick="confirmSave()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Note Modal -->
+  <div class="modal-overlay" id="noteModal">
+    <div class="modal">
+      <h2>📝 Add Note</h2>
+      <p id="noteStudentName" style="font-size:0.85rem;color:var(--text2);margin-bottom:12px;"></p>
+      <textarea id="noteInput" placeholder="Enter a note about this student..."></textarea>
+      <div class="modal-btns">
+        <button class="cancel" onclick="closeNoteModal()">Cancel</button>
+        <button class="confirm" onclick="confirmNote()">Add Note</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load Dropdown -->
+  <div class="arrangements-dropdown" id="arrangementsDropdown"></div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
